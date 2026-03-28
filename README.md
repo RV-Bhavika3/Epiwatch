@@ -24,15 +24,26 @@ The goal is simple: give public health decision-makers a **30-day forward view**
 
 ### Global Risk Map
 Color intensity shows projected outbreak risk across all countries based on 14-day case growth rate and volume.
+<img width="1361" height="596" alt="risk_map" src="https://github.com/user-attachments/assets/1ce7d50e-0d45-4708-86be-257be3e8b1c8" />
+
 
 ### 30-Day Forecast
 Per-country Prophet forecast with actual vs predicted cases and 80% confidence intervals.
+<img width="1365" height="601" alt="forecast" src="https://github.com/user-attachments/assets/8eeabe72-e43d-47bf-a100-187675279ca6" />
+
+
+### Historical Case Trends
+Automatic identification of distinct outbreak waves with peak markers.
+<img width="1361" height="594" alt="trends" src="https://github.com/user-attachments/assets/28db4f86-00bb-4da7-ab0f-fcf0b98a122e" />
+
+
+
 
 ### Wave Detection
-Automatic identification of distinct outbreak waves with peak markers.
-
-### Top At-Risk Countries
 Ranked table of countries by risk score, growth rate, and average daily cases.
+<img width="1363" height="586" alt="wave_detection" src="https://github.com/user-attachments/assets/288a5d96-3fe5-4729-ac12-391917399dbd" />
+
+
 
 ---
 
