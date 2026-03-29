@@ -5,6 +5,15 @@
 
 ---
 
+## Live Demo
+
+👉 **[https://epiwatch-codecure2026.streamlit.app/](https://epiwatch-codecure2026.streamlit.app/)**
+
+> Full interactive dashboard — no installation required.  
+> Also runs locally using the instructions below.
+
+---
+
 ## Overview
 
 **EpiWatch** is an AI-powered epidemic forecasting dashboard that predicts the spread of infectious diseases using real-world epidemiological data. It integrates two datasets — the Johns Hopkins University (JHU) COVID-19 global time-series dataset and the Our World in Data (OWID) COVID-19 dataset — trains a Facebook Prophet forecasting model per country, computes outbreak risk scores, and presents everything through a clean, interactive Streamlit web application.
