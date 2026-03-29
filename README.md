@@ -7,55 +7,24 @@
 
 ## Overview
 
-**EpiWatch** is an AI-powered epidemic forecasting dashboard that predicts the spread of infectious diseases using real-world epidemiological data. It ingests the Johns Hopkins University (JHU) COVID-19 global time-series dataset, trains a Facebook Prophet forecasting model per country, computes outbreak risk scores, and presents everything through a clean, interactive Streamlit web application.
+**EpiWatch** is an AI-powered epidemic forecasting dashboard that predicts the spread of infectious diseases using real-world epidemiological data. It integrates two datasets — the Johns Hopkins University (JHU) COVID-19 global time-series dataset and the Our World in Data (OWID) COVID-19 dataset — trains a Facebook Prophet forecasting model per country, computes outbreak risk scores, and presents everything through a clean, interactive Streamlit web application.
 
-The goal is simple: give public health decision-makers a **30-day forward view** of outbreak trajectories — before a surge becomes a crisis.
-
----
-
-## Live Demo
-
-> Run locally using the instructions below.  
-> The dashboard opens automatically at `http://localhost:8501`
-
----
-
-## Screenshots
-
-### Global Risk Map
-Color intensity shows projected outbreak risk across all countries based on 14-day case growth rate and volume.
-<img width="1361" height="596" alt="risk_map" src="https://github.com/user-attachments/assets/1ce7d50e-0d45-4708-86be-257be3e8b1c8" />
-
-
-### 30-Day Forecast
-Per-country Prophet forecast with actual vs predicted cases and 80% confidence intervals.
-<img width="1365" height="601" alt="forecast" src="https://github.com/user-attachments/assets/8eeabe72-e43d-47bf-a100-187675279ca6" />
-
-
-### Historical Case Trends
-Automatic identification of distinct outbreak waves with peak markers.
-<img width="1361" height="594" alt="trends" src="https://github.com/user-attachments/assets/28db4f86-00bb-4da7-ab0f-fcf0b98a122e" />
-
-
-
-
-### Wave Detection
-Ranked table of countries by risk score, growth rate, and average daily cases.
-<img width="1363" height="586" alt="wave_detection" src="https://github.com/user-attachments/assets/288a5d96-3fe5-4729-ac12-391917399dbd" />
-
-
+The goal: give public health decision-makers a **30-day forward view** of outbreak trajectories — before a surge becomes a crisis.
 
 ---
 
 ## Features
 
-- **Global risk map** — Interactive choropleth world map coloured by outbreak risk score
-- **30-day case forecast** — Facebook Prophet model with confidence intervals per country
-- **Wave detection** — Automatic identification of outbreak peaks using rolling average analysis
-- **Risk ranking** — Top at-risk countries ranked by growth rate × case volume formula
-- **Historical trends** — Multi-country case trend comparison since 2021
-- **Fully interactive** — Country selector, forecast horizon slider, live KPI cards
-- **201 countries tracked** — Full global coverage from JHU dataset
+- **Global risk map** — Interactive choropleth world map coloured by outbreak risk score across 201 countries
+- **30-day case forecast** — Facebook Prophet model with actual vs predicted cases and 80% confidence intervals
+- **Vaccination vs Cases chart** — Dual-axis chart showing how vaccination rollout correlated with case decline (OWID data)
+- **Cases vs Deaths chart** — Visualises the 2–3 week lag between infections and deaths (JHU deaths data)
+- **Wave detection** — Automatic identification of distinct outbreak peaks using rolling average analysis
+- **Historical trends** — Multi-country case trend comparison for top 5 at-risk countries
+- **Risk ranking table** — Top at-risk countries ranked by growth rate × case volume formula
+- **Biological insight boxes** — Plain-language epidemiological interpretation under every chart
+- **Fully interactive** — Country selector, forecast horizon slider (7–60 days), countries-to-rank slider
+- **2 datasets integrated** — JHU (primary) + Our World in Data (secondary)
 
 ---
 
@@ -64,7 +33,8 @@ Ranked table of countries by risk score, growth rate, and average daily cases.
 | Layer | Tool |
 |---|---|
 | Language | Python 3.10+ |
-| Data source | JHU CSSE COVID-19 Dataset (live from GitHub) |
+| Primary dataset | JHU CSSE COVID-19 Dataset (live from GitHub) |
+| Secondary dataset | Our World in Data COVID-19 Dataset (live from GitHub) |
 | ML model | Facebook Prophet |
 | Visualisation | Plotly Express + Graph Objects |
 | Dashboard | Streamlit |
@@ -76,7 +46,7 @@ Ranked table of countries by risk score, growth rate, and average daily cases.
 
 ```
 EpiWatch/
-├── app.py              # Streamlit dashboard — UI, charts, map
+├── app.py              # Streamlit dashboard — all UI, charts, map
 ├── model.py            # Data loading, preprocessing, forecasting, risk scoring
 ├── evaluate.py         # Model evaluation — MAE, RMSE, MAPE metrics
 ├── requirements.txt    # Python dependencies
@@ -112,7 +82,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-> Prophet requires pystan under the hood. If installation fails, try:
+> If Prophet installation fails, try:
 > `pip install prophet --no-build-isolation`
 
 ### 4. Run the dashboard
@@ -130,13 +100,15 @@ Opens at `http://localhost:8501`
 ### Data Pipeline
 
 ```
-JHU CSV (wide format: countries × dates)
+JHU Cases CSV (wide format: countries × dates)
     ↓
 Melt → long format (date, country, cumulative_cases)
     ↓
 .diff() → daily new cases
     ↓
 7-day rolling average → smooth weekend reporting gaps
+    ↓
+Merged with JHU Deaths + OWID vaccination data
     ↓
 Per-country time series ready for modelling
 ```
@@ -145,8 +117,8 @@ Per-country time series ready for modelling
 
 Prophet is a decomposable time-series model developed by Meta that handles:
 - **Trend** — piecewise linear with automatic changepoint detection
-- **Seasonality** — yearly and weekly patterns
-- **Missing values and outliers** — natively without preprocessing
+- **Seasonality** — yearly and weekly patterns built in
+- **Missing values and outliers** — handled natively without preprocessing
 
 One model is trained per country on the **last 2 years** of data and forecasts daily new cases for the next N days with 80% confidence intervals.
 
@@ -161,12 +133,19 @@ risk_score  = growth_rate × log(1 + avg_daily_cases) / 10
 
 This formula identifies countries with both **high absolute case counts AND fast growth** — the most dangerous combination for public health systems.
 
-### Wave Detection
+### Wave Detection Algorithm
 
 Outbreak waves are detected using a local peak algorithm on the 7-day rolling average:
-- A point is flagged as a peak if it is higher than both its neighbours
-- Only peaks above the 75th percentile of all case values are marked
-- This filters out noise and highlights true outbreak surges
+- A point is a peak if it exceeds both its immediate neighbours
+- Only peaks above the 75th percentile of all values are marked
+- This filters noise and highlights true outbreak surges
+
+### Biological Insights
+
+Every chart includes a plain-language biological interpretation:
+- **Vaccination vs Cases** — whether vaccine-induced herd immunity reduced transmission
+- **Cases vs Deaths** — the 2–3 week disease progression lag from infection to severe outcome
+- **Wave Detection** — variant emergence and breakdown of population immunity
 
 ---
 
@@ -182,7 +161,6 @@ Evaluated on a 30-day held-out test set per country:
 | France | 3,569 | 3,582 |
 | Germany | 9,012 | 10,944 |
 
-> MAE and RMSE are in absolute daily case counts. Lower is better.  
 > Run `python evaluate.py` to regenerate these results.
 
 ---
@@ -191,8 +169,9 @@ Evaluated on a 30-day held-out test set per country:
 
 | Dataset | Source | Usage |
 |---|---|---|
-| JHU COVID-19 Time Series | [CSSEGISandData/COVID-19](https://github.com/CSSEGISandData/COVID-19) | Primary — confirmed cases globally |
-| Our World in Data COVID-19 | [owid/covid-19-data](https://github.com/owid/covid-19-data) | Optional enrichment |
+| JHU COVID-19 Time Series (Cases) | [CSSEGISandData/COVID-19](https://github.com/CSSEGISandData/COVID-19) | Primary — confirmed cases globally |
+| JHU COVID-19 Time Series (Deaths) | [CSSEGISandData/COVID-19](https://github.com/CSSEGISandData/COVID-19) | Primary — death counts globally |
+| Our World in Data COVID-19 | [owid/covid-19-data](https://github.com/owid/covid-19-data) | Secondary — vaccination, hospitalisation, R-value |
 
 ---
 
@@ -200,11 +179,12 @@ Evaluated on a 30-day held-out test set per country:
 
 | Criterion | How EpiWatch addresses it |
 |---|---|
-| Functionality | Live dashboard with real data, working forecast, interactive map |
-| Innovation | Wave detection + risk scoring formula not in standard solutions |
-| Code quality | Modular structure: model.py separated from app.py, commented throughout |
-| Scalability | Works for all 201 countries, forecast horizon is adjustable |
-| Biological insight | Risk score combines epidemiological factors (growth rate + volume) |
+| Functionality | Live dashboard with real data, working forecast, interactive map, 6 chart sections |
+| Innovation | Wave detection + risk scoring formula + vaccination correlation analysis |
+| Code quality | Modular structure: model.py separated from app.py, fully commented |
+| Scalability | Works for all 201 countries, forecast horizon fully adjustable |
+| Biological insight | Vaccination vs cases, deaths lag, wave detection — all with plain-language interpretation boxes |
+| Dataset usage | Both primary (JHU) and secondary (OWID) datasets fully integrated |
 
 ---
 
